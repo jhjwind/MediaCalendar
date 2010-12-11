@@ -7,7 +7,7 @@
     {
       "matches": [ "http://www.google.com/calendar/*", "https://www.google.com/calendar/*" ],
       "run_at": "document_end",
-      "js": [ "jquery-1.4.2.js", "tv_shows.js", "page.js" ]
+      "js": [ "jquery-1.4.2.js", "tv_shows.js", "content_script.js" ]
     }
   ],
   "browser_action": {
