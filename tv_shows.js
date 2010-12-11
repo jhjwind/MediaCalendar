@@ -1,10 +1,13 @@
 // define addEvent() or something, work out background<->content_script communication / calls
 
 $(init);
+var secid;
 
 function init(){
-  console.log(chrome.extension.getBackgroundPage().cal_secid);
-  //addEvent({ text: 'kool Event' }, function(d){ console.log(d) });
+  chrome.extension.sendRequest({value: "secid"}, function(response) {
+    console.log(response.secid);
+    secid = response.secid;
+  });
 }
 
 function addEvent(params, onResult){
@@ -23,7 +26,7 @@ function addEvent(params, onResult){
     src: 'v51jeoda1vqo1jcr6hsf2t076s@group.calendar.google.com', // localStorage['MediaCalendar.calendarID'];
     dates: '20101213T203000/20101213T213000',
     scp: 'ONE',
-    secid: 'iA8LQPSNHF4LzESYt_OUdTTDNKU'
+    secid: secid
   }
   
   var uri = 'https://www.google.com/calendar/event';
