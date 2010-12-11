@@ -23,27 +23,34 @@ div {
 div:hover {
   background: #aaaaaa;
 }
-/*#goto {
-  border: 1px solid red;
-  color: red;
-}
-#share {
-  border: 1px solid blue;
-  color: blue;
-}*/
 </style>
 
 <script>
 function gotoCalendar() {
 	var calUrl = "http://www.google.com/calendar/render?tab=mc&pli=1";
-	chrome.tabs.create({ url: calUrl});
+	chrome.tabs.create({ url: calUrl });
 	window.close();
 }
 
 function shareVideo() {
+	var vidUrl = window.location;
 	
+	if(vidUrl.hostname == "www.youtube.com") {
+		chrome.tabs.executeScript(null, { file: shareVideo.js });
+	}
 }
+
+chrome.browserAction.onClicked.addListener(function(tab) {
+	var loc = tab.url;
+	
+	if(loc.match("http\:\/\/www\.youtube\.com\/watch\?v=([A-Za-z0-9_]|\-){11}")) {
+		$('#share').attr("disabled", null);
+	}
+	else {
+		$('#share').attr("disabled", "disabled");
+	}
+});
 </script>
 
-<button onclick="gotoCalendar()" id="goto">Go to MediaCalendar</div>
-<button onclick="shareVideo()" id="share">Share This Video</div>
+<button type="button" onclick="gotoCalendar()" id="goto">Go to MediaCalendar</div>
+<button type="button" onclick="shareVideo()" id="share" disabled="disabled">Share This Video</div>
