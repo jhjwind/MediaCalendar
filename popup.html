@@ -26,30 +26,38 @@ div:hover {
 </style>
 
 <script>
-function gotoCalendar() {
-	var calUrl = "http://www.google.com/calendar/render?tab=mc&pli=1";
-	chrome.tabs.create({ url: calUrl });
-	window.close();
-}
-
-function shareVideo() {
-	var vidUrl = window.location;
-	
-	if(vidUrl.hostname == "www.youtube.com") {
-		chrome.tabs.executeScript(null, { file: shareVideo.js });
-	}
-}
-
-chrome.browserAction.onClicked.addListener(function(tab) {
-	var loc = tab.url;
-	
-	if(loc.match("http\:\/\/www\.youtube\.com\/watch\?v=([A-Za-z0-9_]|\-){11}")) {
-		$('#share').attr("disabled", null);
-	}
-	else {
-		$('#share').attr("disabled", "disabled");
-	}
-});
+  function gotoCalendar() {
+    var calUrl = "http://www.google.com/calendar/render?tab=mc";
+    chrome.tabs.create({ url: calUrl });
+    window.close();
+  }
+  
+  function openShare() {
+  	chrome.tabs.getSelected(null, function(tab) {
+  	  var pageUrl = tab.url;
+  	  
+  	  if(pageUrl.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
+  	  	var calUrl = "http://www.google.com/calendar/render?tab=mc";
+  	  	var calTab = chrome.tabs.create({ url: calUrl });
+  	  	var timeInfo = new Date();
+  	  	chrome.extension.sendRequest({
+  	  	  action: "add",
+  	  	  title: tab.title,
+  	  	  vidUrl: tab.url,
+  	  	  year: timeInfo.getFullYear(),
+  	  	  month: timeInfo.getMonth() + 1,
+  	  	  day: timeInfo.getDate(),
+  	  	  hours: timeInfo.getHours(),
+  	  	  mins: timeInfo.getMins(),
+  	  	  cal: calTab
+  	  	});
+  	  	//addEvent();
+  	  }
+  	  else {
+  	  	//alert("This is not a YouTube video page.");
+  	  }
+  	});
+  }
 </script>
 
 <button type="button" onclick="gotoCalendar()" id="goto">Go to MediaCalendar</div>

@@ -22,6 +22,61 @@
 				});
 			 });
 			
+      
+      chrome.extension.onRequest.addListener(function(req, sender, resp) {
+      	if(req.action == "add") {
+      	  console.log(sender.tab ? "Add from tab" : "Add from extern");
+      	  // get relevant info
+      	  var eventTitle = req.title;
+      	  var videoUrl = req.url;
+      	  var year = req.year;
+      	  var month = req.month;
+      	  var date = req.day;
+      	  var trueHour = req.hours;
+      	  var medHour = trueHour % 12;
+      	  var min = req.mins;
+      	  console.log(req);
+      	  
+      	  // construct quick add string
+      	  var nameStr = "" + month + "/" + date + "/" + year + " ";
+      	  
+      	  if(medHour == 0)
+      	  	nameStr += "12"
+      	  else
+      	  	nameStr += medHour;
+      	  
+      	  if(trueHour > 11)
+      	  	nameStr += "pm ";
+      	  else
+      	  	nameStr += "am ";
+      	  
+      	  nameStr += eventTitle;
+      	  
+      	  // find calendar tab
+      	  var calWin = null;
+      	  var views = chrome.extension.getViews({ type: "tab" });
+      	  for(var i = 0; i < views.length; i++) {
+      	  	if(views[i].location.href == req.cal.url) {
+      	  	  calWin = views[i];
+      	  	  break;
+      	  	}
+      	  }
+      	  
+      	  if(calWin == null) {
+      	  	resp({ success: "false" });
+      	  	return;
+      	  }
+      	  
+      	  // lookup quickadd textbox and add button
+      	  $("textarea:contains(1r)").attr('textContent', nameStr);
+      	  $("div.qab-container.gcal-popup > div.goog-inline-block.goog-imageless-button").trigger('mouseup');
+      	  
+      	  resp({ success: "true" });
+      	}
+      	else {
+      	  resp({});
+      	}
+      });
     </script>
   </head>
 </html>
