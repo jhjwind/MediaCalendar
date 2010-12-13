@@ -8,6 +8,7 @@
   	<script type="text/javascript" src="jquery-1.4.2.js"></script>
   	<script type="text/javascript" src="background-init.js"></script>
     <script type="text/javascript" src="schedule-scraper.js"></script>
+    <script type="text/javascript" src="tv_shows.js"></script>
     <script type="text/javascript">
       //schedule('The Amazing Race', onResults);
       
@@ -18,12 +19,59 @@
 			// Inject javascript
 			chrome.browserAction.onClicked.addListener(function(tab) {
 				chrome.tabs.getSelected(null, function(tab) {
-				 chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
+					chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
+					var calTab = null;
+					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, function(t) {
+					  calTab = t;
+					  console.log('' + t.status);
+					});
+					
+					if(tab.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
+					  //var calUrl = "http://www.google.com/calendar/render?tab=mc";
+					  var timeInfo = new Date();
+					  var year = timeInfo.getFullYear();
+					  var month = timeInfo.getMonth() + 1;
+					  var day = timeInfo.getDate();
+					  var hours = timeInfo.getHours();
+					  var mins = timeInfo.getMinutes();
+					  var secs = timeInfo.getSeconds();
+					  
+					  var startTime = "" + year + "" + month + "" + day + "T" + hours + "" + mins + "" + secs;
+					  var endTime = "/" + year + "" + month + "" + day + "T" + hours + "" + (mins + 1) + "" + secs;
+					  var timeStr = startTime + endTime;
+					  //var desc = ripDescription(tab);
+					  
+					  var port = chrome.tabs.connect(tab.id);
+					  port.postMessage({ act: "get description"});
+					  port.onMessage.addListener(function getResp(response) {
+					  	  localStorage['description'] = response.description;
+					  });
+					  
+					  //chrome.tabs.executeScript(tab.id, { code: "getVideoDescription()" }, null);
+					  
+					  var eventInfo = {
+					  	sf: 'true',
+					  	output: 'js',
+					  	action: 'CREATE', 
+					  	crm: 'BUSY',
+					  	icc: 'PUBLIC',
+					  	text: tab.title,
+					  	location: tab.url,
+					  	details: localStorage['description'] ? localStorage['description'] : "N/A",
+					  	dates: timeStr,
+					  	src: null,
+					  	scp: 'ONE',
+					  	secid: secid
+					  }
+					  
+					  addEvent(eventInfo, null);
+					  //window.close();
+					}
 				});
 			 });
 			
       
-      chrome.extension.onRequest.addListener(function(req, sender, resp) {
+      /*chrome.extension.onRequest.addListener(function(req, sender, resp) {
       	if(req.action == "add") {
       	  console.log(sender.tab ? "Add from tab" : "Add from extern");
       	  // get relevant info
@@ -76,7 +124,7 @@
       	else {
       	  resp({});
       	}
-      });
+      });*/
     </script>
   </head>
 </html>

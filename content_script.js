@@ -51,6 +51,15 @@ function supports_html5_storage() {
 	} 
 }
 
+chrome.extension.onConnect.addListener(function(port) {
+	port.onMessage.addListener(function(msg) {
+		if(msg.act == "get description") {
+		  var desc = $('#eow-description').attr('textContent');
+		  port.postMessage({ description: desc });
+		}
+	});
+});
+
 $(document).ready(function(){	
   console.log("loaded");
 	

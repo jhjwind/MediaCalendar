@@ -5,14 +5,13 @@
   "background_page": "background.html",
   "content_scripts": [
     {
-      "matches": [ "http://www.google.com/calendar/*", "https://www.google.com/calendar/*" ],
+      "matches": [ "http://www.google.com/calendar/*", "https://www.google.com/calendar/*", "http://www.youtube.com/*" ],
       "run_at": "document_end",
-      "js": [ "jquery-1.4.2.js", "tv_shows.js", "page.js" ]
+      "js": [ "jquery-1.4.2.js", "tv_shows.js", "content_script.js", "schedule-scraper.js" ]
     }
   ],
   "browser_action": {
-    "default_icon": "icon.png",
-    "popup": "popup.html"
+    "default_icon": "icon.png"
   },
   "permissions": [
     "tabs", "http://*/*", "https://*/*",

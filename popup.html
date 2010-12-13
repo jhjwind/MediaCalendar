@@ -1,64 +1,105 @@
-<style>
-body {
-  overflow: hidden;
-  margin: 0px;
-  padding: 0px;
-  background: white;
-}
+<html lang="en">
+<head>
 
-div:first-child {
-  margin-top: 0px;
-}
-
-div {
-  cursor: pointer;
-  text-align: center;
-  padding: 1px 3px;
-  font-family: sans-serif;
-  font-size: 0.8em;
-  width: 100px;
-  margin-top: 1px;
-  background: #cccccc;
-}
-div:hover {
-  background: #aaaaaa;
-}
-</style>
-
-<script>
+<script type="text/javascript" src="jquery-1.4.2.js"></script>
+<script type="text/javascript" src="tv_shows.js"></script>
+<script type="text/javascript">
+	var calTab = null;
+	var vidTab = null;
+	var calID = null;
+	var desc = null;
+	
   function gotoCalendar() {
-    var calUrl = "http://www.google.com/calendar/render?tab=mc";
-    chrome.tabs.create({ url: calUrl });
+    chrome.tabs.create({ url: "https://www.google.com/calendar/" });
     window.close();
   }
   
   function openShare() {
   	chrome.tabs.getSelected(null, function(tab) {
+  	  vidTab = tab;
   	  var pageUrl = tab.url;
   	  
   	  if(pageUrl.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
-  	  	var calUrl = "http://www.google.com/calendar/render?tab=mc";
-  	  	var calTab = chrome.tabs.create({ url: calUrl });
-  	  	var timeInfo = new Date();
-  	  	chrome.extension.sendRequest({
-  	  	  action: "add",
-  	  	  title: tab.title,
-  	  	  vidUrl: tab.url,
-  	  	  year: timeInfo.getFullYear(),
-  	  	  month: timeInfo.getMonth() + 1,
-  	  	  day: timeInfo.getDate(),
-  	  	  hours: timeInfo.getHours(),
-  	  	  mins: timeInfo.getMins(),
-  	  	  cal: calTab
+  	  	//var calUrl = "http://www.google.com/calendar/render?tab=mc";
+  	  	chrome.tabs.create({ url: "https://www.google.com/calendar/" }, function(t) {
+  	  		calTab = t;
+  	  		console.log('' + t.status);
+  	  		setTimeout("postVideo()", 2000);
   	  	});
-  	  	//addEvent();
   	  }
   	  else {
   	  	//alert("This is not a YouTube video page.");
   	  }
   	});
   }
+  
+  function postVideo() {
+  	var timeInfo = new Date();
+  	
+  	var year = timeInfo.getFullYear();
+  	var month = timeInfo.getMonth() + 1;
+  	var day = timeInfo.getDate();
+  	var hours = timeInfo.getHours();
+  	var mins = timeInfo.getMinutes();
+  	var secs = timeInfo.getSeconds();
+  	
+  	var startTime = "" + year + "" + month + "" + day + "T" + hours + "" + mins + "" + secs;
+  	var endTime = "/" + year + "" + month + "" + day + "T" + hours + "" + (mins + 1) + "" + secs;
+  	var timeStr = startTime + endTime;
+  	//var desc = ripDescription(tab);
+  	
+  	chrome.tabs.executeScript(vidTab.id, { code: "getVideoDescription()" }, null);
+  	
+  	var eventInfo = {
+  	  sf: 'true',
+  	  output: 'js',
+  	  action: 'CREATE', 
+  	  crm: 'BUSY',
+  	  icc: 'PUBLIC',
+  	  text: vidTab.title,
+  	  location: vidTab.url,
+  	  details: desc ? desc : 'N/A',
+  	  dates: timeStr,
+  	  src: calID,
+  	  scp: 'ONE',
+  	  secid: secid
+  	}
+  	
+  	addEvent(eventInfo, null);
+  	//window.close();
+  }
+  
+  function setDescription(description) {
+  	desc = description;
+  }
+  
+  /*function ripDescription(ytTab) {
+  	var views = chrome.extension.getViews();
+  	var ytView = null;
+  	
+  	for(var i = 0; i < views.length; i++) {
+  	  if(views[i].location.href == ytTab.url) {
+  	  	ytView = views[i];
+  	  	break;
+  	  }
+  	}
+  	
+  	if(ytView) {
+  	  var descPar = ytView.document.getElementByID('eow-description');
+  	  
+  	  for(var i = 0; i < descPar.attributes.length; i++) {
+  	  	if(descPar.attributes[i].name == 'textContent') {
+  	  	  return descPar.attributes[i].value;
+  	  	}
+  	  }
+  	}
+  	
+  	return null;
+  }*/
 </script>
 
-<button type="button" onclick="gotoCalendar()" id="goto">Go to MediaCalendar</div>
-<button type="button" onclick="shareVideo()" id="share" disabled="disabled">Share This Video</div>
+<body>
+	<button type="button" onclick="gotoCalendar()" id="goto">Go to MediaCalendar</button>
+	<button type="button" onclick="openShare()" id="share">Share This Video</button>
+</body>
+</html>
