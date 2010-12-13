@@ -1,4 +1,4 @@
-function clickButton(id) {
+function doMousedown(id) {
 	var fireOnThis = document.getElementById(id);
 	console.log(fireOnThis);
 	var evObj = document.createEvent('MouseEvents');
@@ -6,21 +6,6 @@ function clickButton(id) {
 	fireOnThis.dispatchEvent(evObj);
 	
 	console.log("event fired");
-}
-
-function createEvent() {
-	
-	var btnContentAdd = $(".goog-inline-block.goog-imageless-button");
-	// console.log(btnContentAdd);
-	if (btnContentAdd)  {
-		var btnID = "btnContentAdd";
-		btnContentAdd[1].setAttribute("id", btnID);
-		clickButton(btnID);
-	}
-	else{
-		console.log("button not found");
-	}
-	
 }
 
 function addCalendar() {
@@ -62,13 +47,44 @@ chrome.extension.onConnect.addListener(function(port) {
 
 $(document).ready(function(){	
   console.log("loaded");
+
+	setTimeout(function(){
+		
+		// uncheck all the calendars
+		// var mcNumber_sel = $(".calListLabel-sel").length;
+		// console.log("mcNumber_sel:   "+ mcNumber_sel);
+		// for (var i= 0; i< mcNumber_sel; i++){
+		// 	var mcId = "MC" + i;
+		// 	$(".calListLabel-sel").attr("id", mcId);
+		// 	doMousedown(mcId);
+		// }
+		
+		// hide the calendar view in nav
+		$("#dp_0").hide();
+		$("#dp_0_t1").hide();
+		$("#dp_0_t2").hide();
+		
+		// remove add/setting in My calendars
+		$('#calendars_my_links').hide();
+			
+		// remove irrelevant calendars
+		$('.calListRow .calListChip').each(function () {
+				if (!$(this).attr("title").match("MediaCalendar")){
+						$(this).parent().remove();
+				}
+				else{
+					console.log($(this).children()[1]);
+				}
+		});
+	},500);
+
 	
 	if(!supports_html5_storage())
 	console.log("local storage is not supported");
 	else
 	console.log("local storage is supported");
 	
-	// window.localStorage.clear();
+	//window.localStorage.clear();
 	
 	if( ! (localStorage["MediaCalendar"] == "true")) {
 		// Creat the Calendar
@@ -78,14 +94,4 @@ $(document).ready(function(){
 	else{
 		console.log("already exists");
 	}
-	
-	// Select all the media calendar
-	var mcId = "MC-sel";
-	var mcNumber = $('#calendars_fav .calListLabel').length;
-	for (var i= 0; i< mcNumber; i++){
-		var mcId = "MC-sel" + i;
-		$('#calendars_fav .calListLabel').attr("id", mcId);
-		clickButton(mcId);
-	}
-
 });
