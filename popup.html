@@ -5,9 +5,6 @@
 <script type="text/javascript" src="tv_shows.js"></script>
 <script type="text/javascript">
 	var calTab = null;
-	var vidTab = null;
-	var calID = null;
-	var desc = null;
 	
   function gotoCalendar() {
     chrome.tabs.create({ url: "https://www.google.com/calendar/" });
@@ -15,62 +12,60 @@
   }
   
   function openShare() {
-  	chrome.tabs.getSelected(null, function(tab) {
-  	  vidTab = tab;
-  	  var pageUrl = tab.url;
-  	  
-  	  if(pageUrl.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
-  	  	//var calUrl = "http://www.google.com/calendar/render?tab=mc";
-  	  	chrome.tabs.create({ url: "https://www.google.com/calendar/" }, function(t) {
-  	  		calTab = t;
-  	  		console.log('' + t.status);
-  	  		setTimeout("postVideo()", 2000);
-  	  	});
-  	  }
-  	  else {
-  	  	//alert("This is not a YouTube video page.");
-  	  }
-  	});
-  }
-  
-  function postVideo() {
-  	var timeInfo = new Date();
-  	
-  	var year = timeInfo.getFullYear();
-  	var month = timeInfo.getMonth() + 1;
-  	var day = timeInfo.getDate();
-  	var hours = timeInfo.getHours();
-  	var mins = timeInfo.getMinutes();
-  	var secs = timeInfo.getSeconds();
-  	
-  	var startTime = "" + year + "" + month + "" + day + "T" + hours + "" + mins + "" + secs;
-  	var endTime = "/" + year + "" + month + "" + day + "T" + hours + "" + (mins + 1) + "" + secs;
-  	var timeStr = startTime + endTime;
-  	//var desc = ripDescription(tab);
-  	
-  	chrome.tabs.executeScript(vidTab.id, { code: "getVideoDescription()" }, null);
-  	
-  	var eventInfo = {
-  	  sf: 'true',
-  	  output: 'js',
-  	  action: 'CREATE', 
-  	  crm: 'BUSY',
-  	  icc: 'PUBLIC',
-  	  text: vidTab.title,
-  	  location: vidTab.url,
-  	  details: desc ? desc : 'N/A',
-  	  dates: timeStr,
-  	  src: calID,
-  	  scp: 'ONE',
-  	  secid: secid
-  	}
-  	
-  	addEvent(eventInfo, null);
-  	//window.close();
-  }
-  
-  function setDescription(description) {
-  	desc = description;
+  	/*chrome.tabs.getSelected(null, function(tab) {
+	  //var calUrl = "http://www.google.com/calendar/render?tab=mc";
+	  var timeInfo = new Date();
+	  var year = timeInfo.getFullYear();
+	  var month = timeInfo.getMonth() + 1;
+	  var day = timeInfo.getDate();
+	  var hours = timeInfo.getHours();
+	  var mins = timeInfo.getMinutes();
+	  var secs = timeInfo.getSeconds();
+	  
+	  var startTime = "" + year + "" + month + "" + day + "T" + hours + "" + mins + "" + secs;
+	  var endTime = "/" + year + "" + month + "" + day + "T" + hours + "" + (mins + 1) + "" + secs;
+	  var timeStr = startTime + endTime;
+	  //var desc = ripDescription(tab);
+	  
+	  var ytPort = chrome.tabs.connect(tab.id);
+	  ytPort.onMessage.addListener(function getResp(response) {
+	  	  localStorage['description'] = response.description;
+	  });
+	  ytPort.postMessage({ act: "get description" });
+	  
+	  while(true) {
+	  	if(calTab) {
+	  	  break;
+	  	}
+	  }
+	  
+	  var calPort = chrome.tabs.connect(calTab.id);
+	  calPort.onMessage.addListener(function getResp(response) {
+	  	  localStorage['calendar ID'] = response.calID;
+	  });
+	  calPort.postMessage({ act: "get calendar" });
+	  
+	  //chrome.tabs.executeScript(tab.id, { code: "getVideoDescription()" }, null);
+	  
+	  var eventInfo = {
+	  	sf: 'true',
+	  	output: 'js',
+	  	action: 'CREATE', 
+	  	crm: 'BUSY',
+	  	icc: 'PUBLIC',
+	  	text: tab.title,
+	  	location: tab.url,
+	  	details: localStorage['description'] ? localStorage['description'] : "N/A",
+	  	dates: timeStr,
+	  	src: localStorage['calendar ID'] ? localStorage['calendar ID'] : null,
+	  	scp: 'ONE',
+	  	secid: secid
+	  }
+	  
+	  addEvent(eventInfo, null);
+	  localStorage.clear();
+	  window.close();
+	});*/
   }
   
   /*function ripDescription(ytTab) {

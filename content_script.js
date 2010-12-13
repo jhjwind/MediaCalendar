@@ -43,6 +43,9 @@ chrome.extension.onConnect.addListener(function(port) {
 		  var desc = $('#eow-description').attr('textContent');
 		  port.postMessage({ description: desc });
 		}
+		if(msg.act == "get calendar") {
+		  port.postMessage({ calID: localStorage["MediaCalendar.calendarID"] });
+		}
 	});
 });
 

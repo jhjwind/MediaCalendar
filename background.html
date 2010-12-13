@@ -12,6 +12,8 @@
     <script type="text/javascript">
       //schedule('The Amazing Race', onResults);
       
+      var calTab = null;
+      
       function onResults(episodes){
         console.log(episodes);
       }
@@ -20,10 +22,15 @@
 			chrome.browserAction.onClicked.addListener(function(tab) {
 				chrome.tabs.getSelected(null, function(tab) {
 					chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
-					var calTab = null;
 					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, function(t) {
-					  calTab = t;
-					  console.log('' + t.status);
+						calTab = t;
+					  console.log('tab ' + t.id + ' ' + t.status);
+					  
+					  var calPort = chrome.tabs.connect(t.id);
+					  calPort.onMessage.addListener(function getResp(response) {
+					  	  chrome.extension.getBackgroundPage().localStorage['calendar ID'] = response.calID;
+					  });
+					  calPort.postMessage({ act: "get calendar" });
 					});
 					
 					if(tab.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
@@ -41,11 +48,11 @@
 					  var timeStr = startTime + endTime;
 					  //var desc = ripDescription(tab);
 					  
-					  var port = chrome.tabs.connect(tab.id);
-					  port.postMessage({ act: "get description"});
-					  port.onMessage.addListener(function getResp(response) {
-					  	  localStorage['description'] = response.description;
+					  var ytPort = chrome.tabs.connect(tab.id);
+					  ytPort.onMessage.addListener(function getResp(response) {
+					  	  chrome.extension.getBackgroundPage().localStorage['description'] = response.description;
 					  });
+					  ytPort.postMessage({ act: "get description" });
 					  
 					  //chrome.tabs.executeScript(tab.id, { code: "getVideoDescription()" }, null);
 					  
@@ -59,17 +66,21 @@
 					  	location: tab.url,
 					  	details: localStorage['description'] ? localStorage['description'] : "N/A",
 					  	dates: timeStr,
-					  	src: null,
+					  	src: localStorage['calendar ID'] ? localStorage['calendar ID'] : null,
 					  	scp: 'ONE',
 					  	secid: secid
 					  }
 					  
 					  addEvent(eventInfo, null);
+					  localStorage.clear();
 					  //window.close();
 					}
 				});
 			 });
 			
+			function setCalTab(tab) {
+			  calTab = tab;
+			}
       
       /*chrome.extension.onRequest.addListener(function(req, sender, resp) {
       	if(req.action == "add") {
@@ -120,6 +131,9 @@
       	  $("div.qab-container.gcal-popup > div.goog-inline-block.goog-imageless-button").trigger('mouseup');
       	  
       	  resp({ success: "true" });
+      	}
+      	else {
+      	  resp({});
       	}
       });*/
     </script>
