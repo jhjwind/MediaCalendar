@@ -5,9 +5,9 @@
   "background_page": "background.html",
   "content_scripts": [
     {
-      "matches": [ "http://www.google.com/calendar/*", "https://www.google.com/calendar/*", "http://www.youtube.com/*" ],
+      "matches": [ "http://www.google.com/calendar/*", "https://www.google.com/calendar/*", , "http://www.youtube.com/*"],
       "run_at": "document_end",
-      "js": [ "jquery-1.4.2.js", "tv_shows.js", "content_script.js", "schedule-scraper.js" ]
+      "js": [ "jquery-1.4.4.min.js", "jquery-ui-1.8.7.custom.min.js", "tv_shows.js", "content_script.js" ]
     }
   ],
   "browser_action": {
