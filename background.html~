@@ -17,33 +17,12 @@
       }
       		
       		var calPort = null;
-      		var ytPort = null;
-			
-			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-				if(changeInfo.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
-				  	ytPort = chrome.tabs.connect(tab.id);
-				  	ytPort.onMessage.addListener(function getResp(response) {
-				  		if(response.title) {
-				  		  localStorage['title'] = response.title;
-				  		}
-				  		else {
-				  		  localStorage['description'] = response.description;
-				  		}
-				  	});
-				  	ytPort.postMessage({ act: "get title" });
-					ytPort.postMessage({ act: "get description" });
-				}
-				else {
-				  localStorage['title'] = " ";
-				  localStorage['description'] = " ";
-				}
-			});
-      		
+
 			// Inject javascript
 			chrome.browserAction.onClicked.addListener(function(tab) {
 				chrome.tabs.getSelected(null, function(tab) {
 					chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
-					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, null);
+					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, setCalTab);
 					
 					if(tab.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
 					  //var calUrl = "http://www.google.com/calendar/render?tab=mc";
@@ -67,17 +46,17 @@
 					  var timeStr = formatYTDate(episode);
 					  //var desc = ripDescription(tab);
 					  
-					  /*var dt = new Date();
-					  while((new Date() - dt) < 1000) {
-					  	//console.log('Waitin');
-					  }
-					  
-					  if(!localStorage['title'] || !localStorage['description']) {
-					  	dt = new Date();
-					  	while((new Date() - dt) < 1000) {
-					  	  //console.log('Waitin');
-					  	}
-					  }*/
+					  var ytPort = chrome.tabs.connect(tab.id);
+					  ytPort.onMessage.addListener(function getResp(response) {
+					  	  if(response.title) {
+					  	  	chrome.extension.getBackgroundPage().localStorage['title'] = response.title;
+					  	  }
+					  	  else {
+					  	  	chrome.extension.getBackgroundPage().localStorage['description'] = response.description;
+					  	  }
+					  });
+					  ytPort.postMessage({ act: "get title" });
+					  ytPort.postMessage({ act: "get description" });
 					  
 					  //chrome.tabs.executeScript(tab.id, { code: "getVideoDescription()" }, null);
 					  
@@ -94,7 +73,7 @@
 					  	scp: 'ONE'
 					  }
 					  
-					  dt = new Date();
+					  var dt = new Date();
 					  while((new Date() - dt) < 5000) {
 					  	//console.log('Waitin');
 					  }
@@ -123,6 +102,10 @@
 					}
 				});
 			 });
+			
+			function setCalTab(tab) {
+			  calTab = tab;
+			}
       
       /*chrome.extension.onRequest.addListener(function(req, sender, resp) {
       	if(req.action == "add") {
