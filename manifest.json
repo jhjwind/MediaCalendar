@@ -7,7 +7,8 @@
     {
       "matches": [ "http://www.google.com/calendar/*", "https://www.google.com/calendar/*", "http://www.youtube.com/*"],
       "run_at": "document_end",
-      "js": [ "jquery-1.4.4.min.js", "jquery-ui-1.8.7.custom.min.js", "tv_shows.js", "content_script.js" ]
+      "js": [ "jquery-1.4.4.min.js", "jquery-ui-1.8.7.custom.min.js", "tv_shows.js", "content_script.js" ],
+      "css": ["extension.css"]
     }
   ],
   "browser_action": {

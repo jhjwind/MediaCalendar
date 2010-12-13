@@ -1,6 +1,6 @@
 // define addEvent() or something, work out background<->content_script communication / calls
 
-$(init);
+$(function(){ setTimeout(init, 500) });
 var secid;
 
 /*
@@ -8,7 +8,7 @@ var secid;
 */
 function init(){
   chrome.extension.sendRequest({ value: 'secid' }, init2);
-  $('#maininput').after('<input id="addShow" type="text" />');
+  $('.nb_0_last').after('<br /><div style="margin-left: 10px;"><h3>Schedule TV</h3><input id="addShow" placeholder="Enter show name" type="text" /></div>');
   $('#addShow').after('<input type="button" value="Add Episodes" id="addShowButton" />');
   $('#addShowButton').click(requestEpisodes);
   chrome.extension.sendRequest({ call: 'getShows' }, onShowList);
@@ -26,6 +26,7 @@ function init(){
 // store secid in a variable so it's accessible through this file's scope
 function init2(cookieResponse){
   secid = cookieResponse.secid;
+  createInterface();
 }
 
 function onShowList(shows){
@@ -74,6 +75,8 @@ function formatEpisodeDate(ep){
 function addEvent(params, onResult){
   var names = ['sf', 'output', 'action', 'crm', 'erem', 'text', 'location', 'details', 
                'src', 'dates', 'scp', 'secid'];
+  
+  console.log('Add event: ', localStorage['MediaCalendar.calendarID']);
   
   var defaults = {
     sf: 'true',

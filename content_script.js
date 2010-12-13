@@ -18,13 +18,14 @@ function addCalendar() {
 	$.ajax({
 	   type: "POST",
 	   url: "https://www.google.com/calendar/editcaldetails",
-		 data: "ncal=true&dtid=_new_calendar_id_0&cn="+ username +"%20MediaCalendar&details=My%20Media%20Calendar&location=&gl=US&ctz=America%2FNew_York&ap=X19wdWJsaWNfcHJpbmNpcGFsX19AcHVibGljLmNhbGVuZGFyLmdvb2dsZS5jb20&ap=20&secid=HpuHBWa7gWOI0b3T6CEDBHolm54",
+		 data: "ncal=true&dtid=_new_calendar_id_0&cn="+ username +"%20MediaCalendar&details=My%20Media%20Calendar&location=&gl=US&ctz=America%2FNew_York&ap=X19wdWJsaWNfcHJpbmNpcGFsX19AcHVibGljLmNhbGVuZGFyLmdvb2dsZS5jb20&ap=20&secid=" + secid,
 	   dataType: "text",
 		 success: function(msg) {
 			var parts = msg.split(',');
 			var calendarID = parts[17].substring(1, parts[17].length-1);
-			console.log(calendarID);
-			localStorage["MediaCalendar.calendarID"] =  parts[17];
+			console.log(calendarID, msg);
+			localStorage["MediaCalendar.calendarID"] = calendarID;
+			location.reload(true);
 		}
 	 });
 }
@@ -45,39 +46,46 @@ chrome.extension.onConnect.addListener(function(port) {
 	});
 });
 
-$(document).ready(function(){	
-  console.log("loaded");
+function filterCalendars(){
+  // remove irrelevant calendars
+	$('.calListRow .calListChip').each(function () {
+			if (!$(this).attr("title").match("MediaCalendar")){
+					$(this).parent().hide();
+			}
+			else{
+				console.log($(this).children()[1]);
+			}
+	});
+	
+	$('.calList').mousedown(function(){ setTimeout(filterCalendars, 50) });
+	$('.msf-button').mousedown(function(){ setTimeout(filterCalendars, 50) });
+}
 
-	setTimeout(function(){
+function createInterface(){	
+  console.log("loaded", secid);
 		
-		// uncheck all the calendars
-		// var mcNumber_sel = $(".calListLabel-sel").length;
-		// console.log("mcNumber_sel:   "+ mcNumber_sel);
-		// for (var i= 0; i< mcNumber_sel; i++){
-		// 	var mcId = "MC" + i;
-		// 	$(".calListLabel-sel").attr("id", mcId);
-		// 	doMousedown(mcId);
-		// }
-		
-		// hide the calendar view in nav
-		$("#dp_0").hide();
-		$("#dp_0_t1").hide();
-		$("#dp_0_t2").hide();
-		
-		// remove add/setting in My calendars
-		$('#calendars_my_links').hide();
-			
-		// remove irrelevant calendars
-		$('.calListRow .calListChip').each(function () {
-				if (!$(this).attr("title").match("MediaCalendar")){
-						$(this).parent().remove();
-				}
-				else{
-					console.log($(this).children()[1]);
-				}
-		});
-	},500);
+	// uncheck all the calendars
+	// var mcNumber_sel = $(".calListLabel-sel").length;
+	// console.log("mcNumber_sel:   "+ mcNumber_sel);
+	// for (var i= 0; i< mcNumber_sel; i++){
+	// 	var mcId = "MC" + i;
+	// 	$(".calListLabel-sel").attr("id", mcId);
+	// 	doMousedown(mcId);
+	// }
+	
+	// hide the calendar view in nav
+	$("#dp_0").hide();
+	$("#dp_0_t1").hide();
+	$("#dp_0_t2").hide();
+	$('.qnb-quickadd').hide();
+	
+	// remove add/setting in My calendars
+	$('#calendars_my_links').hide();
+  $('#calendars_fav_links').hide();
+  $('#searchAddCalForm').hide();
+  $('#clst_fav')[0].childNodes[1].nodeValue = "Friends' calendars";
 
+  filterCalendars();
 	
 	if(!supports_html5_storage())
 	console.log("local storage is not supported");
@@ -94,4 +102,4 @@ $(document).ready(function(){
 	else{
 		console.log("already exists");
 	}
-});
+}
