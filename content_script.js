@@ -39,12 +39,17 @@ function supports_html5_storage() {
 
 chrome.extension.onConnect.addListener(function(port) {
 	port.onMessage.addListener(function(msg) {
+		if(msg.act == "get title") {
+		  var title = $('#eow-title').attr('title');
+		  port.postMessage({ title: title });
+		}
 		if(msg.act == "get description") {
 		  var desc = $('#eow-description').attr('textContent');
 		  port.postMessage({ description: desc });
 		}
-		if(msg.act == "get calendar") {
-		  port.postMessage({ calID: localStorage["MediaCalendar.calendarID"] });
+		if(msg.act == "post event") {
+		  addEvent(msg.info, null);
+		  port.postMessage({ success: "success" });
 		}
 	});
 });

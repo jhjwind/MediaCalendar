@@ -12,26 +12,17 @@
     <script type="text/javascript">
       //schedule('The Amazing Race', onResults);
       
-      var calTab = null;
-      
       function onResults(episodes){
         console.log(episodes);
       }
+      		
+      		var calPort = null;
 
 			// Inject javascript
 			chrome.browserAction.onClicked.addListener(function(tab) {
 				chrome.tabs.getSelected(null, function(tab) {
 					chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
-					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, function(t) {
-						calTab = t;
-					  console.log('tab ' + t.id + ' ' + t.status);
-					  
-					  var calPort = chrome.tabs.connect(t.id);
-					  calPort.onMessage.addListener(function getResp(response) {
-					  	  chrome.extension.getBackgroundPage().localStorage['calendar ID'] = response.calID;
-					  });
-					  calPort.postMessage({ act: "get calendar" });
-					});
+					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, setCalTab);
 					
 					if(tab.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
 					  //var calUrl = "http://www.google.com/calendar/render?tab=mc";
@@ -43,15 +34,28 @@
 					  var mins = timeInfo.getMinutes();
 					  var secs = timeInfo.getSeconds();
 					  
-					  var startTime = "" + year + "" + month + "" + day + "T" + hours + "" + mins + "" + secs;
-					  var endTime = "/" + year + "" + month + "" + day + "T" + hours + "" + (mins + 1) + "" + secs;
-					  var timeStr = startTime + endTime;
+					  var episode = {
+					  	year: year.toString(),
+					  	month: month.toString(),
+					  	day: day.toString(),
+					  	time: "" + hours + ":" + mins,
+					  }
+					  
+					  //var startTime = "" + year + "" + month + "" + day + "T" + hours + "" + mins + "" + secs;
+					  //var endTime = "/" + year + "" + month + "" + day + "T" + hours + "" + (mins + 1) + "" + secs;
+					  var timeStr = formatYTDate(episode);
 					  //var desc = ripDescription(tab);
 					  
 					  var ytPort = chrome.tabs.connect(tab.id);
 					  ytPort.onMessage.addListener(function getResp(response) {
-					  	  chrome.extension.getBackgroundPage().localStorage['description'] = response.description;
+					  	  if(response.title) {
+					  	  	chrome.extension.getBackgroundPage().localStorage['title'] = response.title;
+					  	  }
+					  	  else {
+					  	  	chrome.extension.getBackgroundPage().localStorage['description'] = response.description;
+					  	  }
 					  });
+					  ytPort.postMessage({ act: "get title" });
 					  ytPort.postMessage({ act: "get description" });
 					  
 					  //chrome.tabs.executeScript(tab.id, { code: "getVideoDescription()" }, null);
@@ -62,17 +66,38 @@
 					  	action: 'CREATE', 
 					  	crm: 'BUSY',
 					  	icc: 'PUBLIC',
-					  	text: tab.title,
+					  	text: localStorage['title'] ? localStorage['title'] : "MediaCalendar",
 					  	location: tab.url,
 					  	details: localStorage['description'] ? localStorage['description'] : "N/A",
 					  	dates: timeStr,
-					  	src: localStorage['calendar ID'] ? localStorage['calendar ID'] : null,
-					  	scp: 'ONE',
-					  	secid: secid
+					  	scp: 'ONE'
 					  }
 					  
-					  addEvent(eventInfo, null);
-					  localStorage.clear();
+					  var dt = new Date();
+					  while((new Date() - dt) < 5000) {
+					  	//console.log('Waitin');
+					  }
+					  
+					  chrome.tabs.getAllInWindow(null, function(ts) {
+					  	  for(var i = 0; i < ts.length; i++) {
+					  	  	if(ts[i].url.indexOf("http://www.google.com/calendar") == 0 || ts[i].url.indexOf("https://www.google.com/calendar") == 0) {
+					  	  	  //chrome.tabs.executeScript();
+					  	  	  chrome.tabs.executeScript(ts[i].id, {file: "content_script.js"});
+					  	  	  calPort = chrome.tabs.connect(ts[i].id);
+					  	  	  calPort.onMessage.addListener(function getResp(response) {
+					  	  	  	  if(response.success == "success") {
+					  	  	  	  	console.log('SUCCESS');
+					  	  	  	  }
+					  	  	  	  else {
+					  	  	  	  	console.log('FAILURE awwwwww');
+					  	  	  	  }
+					  	  	  });
+					  	  	  calPort.postMessage({ act: "post event", info: eventInfo });
+					  	  	  break;
+					  	  	}
+					  	  }
+					  });
+					  //localStorage.clear();
 					  //window.close();
 					}
 				});

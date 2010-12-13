@@ -72,6 +72,25 @@ function formatEpisodeDate(ep){
   return date + time1 + '/' + date + time2;
 }
 
+function formatYTDate(ep){
+  var zeroes = '00';
+  var date = ep.year + (zeroes.substring(ep.month.length) + ep.month);
+  date += zeroes.substring(ep.day.length) + ep.day;
+  var hm = ep.time.split(':');
+  var h = parseInt(hm[0]);
+  var m = parseInt(hm[1]);
+  var time1 = 'T' + ep.time.split(':').join('') + '00';
+  /*if(m + 30 >= 60){
+    h += 1;
+    m = (m + 30) % 60;
+  }*/
+  if(h >= 24) h = 0;
+  var hs = h.toString();
+  var ms = m.toString();
+  var time2 = 'T' + (zeroes.substring(hs.length) + hs) + (zeroes.substring(ms.length) + ms) + '00';
+  return date + time2 + '/' + date + time2;
+}
+
 function addEvent(params, onResult){
   var names = ['sf', 'output', 'action', 'crm', 'erem', 'text', 'location', 'details', 
                'src', 'dates', 'scp', 'secid'];
@@ -85,8 +104,8 @@ function addEvent(params, onResult){
     crm: 'BUSY',
     icc: 'PUBLIC',
     text: 'Event Title',
-    location: 'Television',
-    details: 'Some Description',
+    location: ' ',
+    details: ' ',
     src: localStorage['MediaCalendar.calendarID'],
     dates: '20101213T203000/20101213T213000',
     scp: 'ONE',
