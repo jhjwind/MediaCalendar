@@ -88,6 +88,27 @@ function createInterface(){
   $('#searchAddCalForm').hide();
   $('#clst_fav')[0].childNodes[1].nodeValue = "Friends' calendars";
 
+  // highlight the calendars properly
+  var number = $(".calListChip").length;
+  for (var i= 0; i< number; i++){
+  	var text= $('.calListChip').eq(i).children()[1].children[0].innerHTML;
+  	var notSel = $($('.calListChip').eq(i).children()[1].children[0]).hasClass('calListLabel');
+  	var sel = $($('.calListChip').eq(i).children()[1].children[0]).hasClass('calListLabel-sel');
+
+  	if(text.match("MediaCalendar") && notSel == true) {
+  		var mcId = "MC_sel" + i;
+  		$($(".calListChip").eq(i).children()[1].children[0]).attr("id", mcId);
+  		doMousedown(mcId);
+  	}
+
+  	if( !text.match("MediaCalendar") && sel == true) {
+  		var mcId = "MC_sel" + i;
+  		$($(".calListChip").eq(i).children()[1].children[0]).attr("id", mcId);
+  		doMousedown(mcId);
+  	}
+
+  };
+
   filterCalendars();
 	
 	if(!supports_html5_storage())
