@@ -39,13 +39,10 @@ function supports_html5_storage() {
 
 chrome.extension.onConnect.addListener(function(port) {
 	port.onMessage.addListener(function(msg) {
-		if(msg.act == "get title") {
+		if(msg.act == "get titledesc") {
 		  var title = $('#eow-title').attr('title');
-		  port.postMessage({ title: title });
-		}
-		if(msg.act == "get description") {
 		  var desc = $('#eow-description').attr('textContent');
-		  port.postMessage({ description: desc });
+		  setTimeout(function(){ port.postMessage({ titledesc: true, title: title, description: desc }); }, 5000);
 		}
 		if(msg.act == "post event") {
 		  addEvent(msg.info, null);
@@ -61,7 +58,7 @@ function filterCalendars(){
 					$(this).parent().hide();
 			}
 			else{
-				console.log($(this).children()[1]);
+				//console.log($(this).children()[1]);
 			}
 	});
 	
@@ -115,6 +112,8 @@ function createInterface(){
   };
 
   filterCalendars();
+	document.addEventListener('mouseup', function(){ setTimeout(filterCalendars, 100) }, true);
+	document.addEventListener('keyup', function(){ setTimeout(filterCalendars, 100) }, true);
 	
 	if(!supports_html5_storage())
 	console.log("local storage is not supported");

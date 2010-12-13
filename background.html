@@ -17,33 +17,14 @@
       }
       		
       		var calPort = null;
-      		var ytPort = null;
-			
-			chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-				if(changeInfo.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
-				  	ytPort = chrome.tabs.connect(tab.id);
-				  	ytPort.onMessage.addListener(function getResp(response) {
-				  		if(response.title) {
-				  		  localStorage['title'] = response.title;
-				  		}
-				  		else {
-				  		  localStorage['description'] = response.description;
-				  		}
-				  	});
-				  	ytPort.postMessage({ act: "get title" });
-					ytPort.postMessage({ act: "get description" });
-				}
-				else {
-				  localStorage['title'] = " ";
-				  localStorage['description'] = " ";
-				}
-			});
       		
+      console.log('background.html');
+
 			// Inject javascript
 			chrome.browserAction.onClicked.addListener(function(tab) {
 				chrome.tabs.getSelected(null, function(tab) {
-					chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
-					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, null);
+					//chrome.tabs.executeScript(tab.id, {file: "content_script.js"});
+					chrome.tabs.create({ url: "https://www.google.com/calendar/" }, setCalTab);
 					
 					if(tab.url.match(/http:\/\/www.youtube.com\/watch\?v\=([A-Za-z0-9_]|\-){11}/)) {
 					  //var calUrl = "http://www.google.com/calendar/render?tab=mc";
@@ -67,62 +48,64 @@
 					  var timeStr = formatYTDate(episode);
 					  //var desc = ripDescription(tab);
 					  
-					  /*var dt = new Date();
-					  while((new Date() - dt) < 1000) {
-					  	//console.log('Waitin');
-					  }
+					  var ytPort = chrome.tabs.connect(tab.id);
 					  
-					  if(!localStorage['title'] || !localStorage['description']) {
-					  	dt = new Date();
-					  	while((new Date() - dt) < 1000) {
-					  	  //console.log('Waitin');
-					  	}
-					  }*/
+					  console.log('on youtube', ytPort);
+					  ytPort.onMessage.addListener(function getResp(response) {
+					  	  if(!response.titledesc) return;
+					  	  console.log('ytPort from background', response.titledesc, response.title, response.description);
+					  	  
+					  	  var eventInfo = {
+    					  	sf: 'true',
+    					  	output: 'js',
+    					  	action: 'CREATE', 
+    					  	crm: 'BUSY',
+    					  	icc: 'PUBLIC',
+    					  	text: response.title,
+    					  	location: tab.url,
+    					  	details: response.description,
+    					  	dates: timeStr,
+    					  	scp: 'ONE'
+    					  }
+
+    					  chrome.tabs.getAllInWindow(null, function(ts) {
+    					  	  for(var i = 0; i < ts.length; i++) {
+    					  	  	if(ts[i].url.indexOf("http://www.google.com/calendar") == 0 || ts[i].url.indexOf("https://www.google.com/calendar") == 0) {
+    					  	  	  //chrome.tabs.executeScript();
+    					  	  	  //chrome.tabs.executeScript(ts[i].id, {file: "content_script.js"});
+    					  	  	  
+    					  	  	  calPort = chrome.tabs.connect(ts[i].id);
+    					  	  	  console.log('found cal window', eventInfo, calPort);
+    					  	  	  /*calPort.onMessage.addListener(function getResp(response) {
+    					  	  	  	  if(response.success == "success") {
+    					  	  	  	  	console.log('SUCCESS');
+    					  	  	  	  }
+    					  	  	  	  else {
+    					  	  	  	  	console.log('FAILURE awwwwww');
+    					  	  	  	  }
+    					  	  	  });*/
+    					  	  	  calPort.postMessage({ act: "post event", info: eventInfo });
+    					  	  	  break;
+    					  	  	}
+    					  	  }
+    					  });
+
+					  	  
+					  });
+					  ytPort.postMessage({ act: "get titledesc" });
 					  
 					  //chrome.tabs.executeScript(tab.id, { code: "getVideoDescription()" }, null);
 					  
-					  var eventInfo = {
-					  	sf: 'true',
-					  	output: 'js',
-					  	action: 'CREATE', 
-					  	crm: 'BUSY',
-					  	icc: 'PUBLIC',
-					  	text: localStorage['title'] ? localStorage['title'] : "MediaCalendar",
-					  	location: tab.url,
-					  	details: localStorage['description'] ? localStorage['description'] : "N/A",
-					  	dates: timeStr,
-					  	scp: 'ONE'
-					  }
 					  
-					  dt = new Date();
-					  while((new Date() - dt) < 5000) {
-					  	//console.log('Waitin');
-					  }
-					  
-					  chrome.tabs.getAllInWindow(null, function(ts) {
-					  	  for(var i = 0; i < ts.length; i++) {
-					  	  	if(ts[i].url.indexOf("http://www.google.com/calendar") == 0 || ts[i].url.indexOf("https://www.google.com/calendar") == 0) {
-					  	  	  //chrome.tabs.executeScript();
-					  	  	  chrome.tabs.executeScript(ts[i].id, {file: "content_script.js"});
-					  	  	  calPort = chrome.tabs.connect(ts[i].id);
-					  	  	  calPort.onMessage.addListener(function getResp(response) {
-					  	  	  	  if(response.success == "success") {
-					  	  	  	  	console.log('SUCCESS');
-					  	  	  	  }
-					  	  	  	  else {
-					  	  	  	  	console.log('FAILURE awwwwww');
-					  	  	  	  }
-					  	  	  });
-					  	  	  calPort.postMessage({ act: "post event", info: eventInfo });
-					  	  	  break;
-					  	  	}
-					  	  }
-					  });
 					  //localStorage.clear();
 					  //window.close();
 					}
 				});
 			 });
+			
+			function setCalTab(tab) {
+			  calTab = tab;
+			}
       
       /*chrome.extension.onRequest.addListener(function(req, sender, resp) {
       	if(req.action == "add") {

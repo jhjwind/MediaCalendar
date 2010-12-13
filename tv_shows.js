@@ -11,12 +11,15 @@ function init(){
   $('.nb_0_last').after('<br /><div style="margin-left: 10px;"><h3>Schedule TV</h3><input id="addShow" placeholder="Enter show name" type="text" /></div>');
   $('#addShow').after('<input type="button" value="Add Episodes" id="addShowButton" />');
   $('#addShowButton').click(requestEpisodes);
+  
+  $('#addShowButton').before('<form><input type="radio" checked name="privacy" id="publicOption" value="public" />Public<br /><input type="radio" name="privacy" value="private" />Private</form>');
+  
   chrome.extension.sendRequest({ call: 'getShows' }, onShowList);
   
   // appearance changes
   $('.onegpad').hide();
   $('#mainlogo').attr('src', 'http://temp.reclipse.net/crummyLogo.png');
-  document.title = 'MediaCalendar';
+  if(document.title == 'Google Calendar') document.title = 'MediaCalendar';
   $('.logoparent').css('height', '31px');
   //$('#mainnav').css('background', '#f3c3d5');
   //$('#chrome_main1').css('background', '#f3c3d5');
@@ -92,7 +95,7 @@ function formatYTDate(ep){
 }
 
 function addEvent(params, onResult){
-  var names = ['sf', 'output', 'action', 'crm', 'erem', 'text', 'location', 'details', 
+  var names = ['sf', 'output', 'action', 'crm', 'icc', 'erem', 'text', 'location', 'details', 
                'src', 'dates', 'scp', 'secid'];
   
   console.log('Add event: ', localStorage['MediaCalendar.calendarID']);
@@ -102,10 +105,10 @@ function addEvent(params, onResult){
     output: 'js',
     action: 'CREATE', 
     crm: 'BUSY',
-    icc: 'PUBLIC',
+    icc: $('#publicOption')[0].checked ? 'PUBLIC' : 'PRIVATE',
     text: 'Event Title',
-    location: ' ',
-    details: ' ',
+    location: 'Television',
+    details: 'Some Description',
     src: localStorage['MediaCalendar.calendarID'],
     dates: '20101213T203000/20101213T213000',
     scp: 'ONE',
